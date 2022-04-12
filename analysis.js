@@ -102,8 +102,12 @@ function complexity(filePath) {
     fileBuilder.ImportCount = 0;
     builders[filePath] = fileBuilder;
 
-    // Tranverse program with a function visitor.
+    // Traverse program with a function visitor.
     traverseWithParents(ast, function(node) {
+        if (node.type === "Literal") {
+            fileBuilder.Strings++;
+        }
+
         if (node.type === 'FunctionDeclaration') {
             var builder = new FunctionBuilder();
 
@@ -111,10 +115,33 @@ function complexity(filePath) {
             builder.StartLine = node.loc.start.line;
 
             builders[builder.FunctionName] = builder;
+
+            builder.ParameterCount = node.params.length;
+            builder.SimpleCyclomaticComplexity = 1;
+
+            // Traverse the children of the function to find the function's properties
+            traverseWithParents(node, function(childFunction) {
+
+                if (isDecision(childFunction)) {
+                    builder.SimpleCyclomaticComplexity++;
+                }
+                if (childFunction.type === "IfStatement") {
+                    // the number of conditions will be 1 + the number of boolean operators
+                    var conditions = 1
+                    traverseWithParents(childFunction, function(condition) {
+                        if (condition.type === "LogicalExpression") {
+                            if (condition.operator === "||" || condition.operator === "&&") {
+                                conditions++;
+                            }
+                        }
+                    });
+                    if (conditions > builder.MaxConditions) {
+                        builder.MaxConditions = conditions;
+                    }
+                }
+            });
         }
-
     });
-
 }
 
 // Helper function for counting children of node.
