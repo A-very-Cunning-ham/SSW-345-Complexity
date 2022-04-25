@@ -159,6 +159,11 @@ function childrenLength(node) {
     return count;
 }
 
+function getStrings(file) {
+
+    return builders[file].Strings
+
+}
 
 // Helper function for checking if a node is a "decision type node"
 function isDecision(node) {
@@ -188,6 +193,7 @@ if (!String.prototype.format) {
         });
     };
 }
+
 
 main();
 
@@ -265,3 +271,4 @@ function Crazy(argument) {
     }
 }
 exports.complexity = complexity;
+exports.getStrings = getStrings;
